@@ -178,13 +178,13 @@ export function SLACard({
             {...dragHandleListeners}
             {...dragHandleAttributes}
             onClick={e => e.stopPropagation()}
-            className="shrink-0 p-[7px] rounded text-content-placeholder hover:text-content-tertiary hover:bg-bg-secondary cursor-grab active:cursor-grabbing transition-colors"
+            className="shrink-0 p-[7px] rounded text-content-secondary hover:text-content-primary hover:bg-bg-secondary cursor-grab active:cursor-grabbing transition-colors"
             title="Drag to reorder"
           >
             <GripIcon />
           </button>
         ) : (
-          <span className="shrink-0 p-[7px] text-content-placeholder">
+          <span className="shrink-0 p-[7px] text-content-secondary">
             <GripIcon />
           </span>
         )}
@@ -222,7 +222,7 @@ export function SLACard({
           <div className="flex items-center gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
             <button
               onClick={e => { e.stopPropagation(); onStartEdit() }}
-              className="p-[7px] rounded-md text-content-tertiary hover:text-content-primary hover:bg-bg-secondary transition-colors"
+              className="p-[7px] rounded-md text-content-secondary hover:text-content-primary hover:bg-bg-secondary transition-colors"
               title="Edit SLA"
             >
               <PencilIcon />
@@ -230,7 +230,7 @@ export function SLACard({
             {!sla.isDefault && (
               <button
                 onClick={e => { e.stopPropagation(); onDelete() }}
-                className="p-[7px] rounded-md text-content-tertiary hover:text-red-600 hover:bg-red-50 transition-colors"
+                className="p-[7px] rounded-md text-content-secondary hover:text-red-600 hover:bg-red-50 transition-colors"
                 title="Delete SLA"
               >
                 <TrashIcon />
@@ -398,7 +398,7 @@ export function SLACard({
                           <td className="pr-3 py-2.5">
                             <button
                               onClick={() => removePriority(key)}
-                              className="p-[7px] rounded-md text-transparent group-hover/row:text-content-tertiary hover:!text-red-500 hover:bg-red-50 transition-colors"
+                              className="p-[7px] rounded-md text-transparent group-hover/row:text-content-secondary hover:!text-red-500 hover:bg-red-50 transition-colors"
                               title={`Remove ${label}`}
                             >
                               <FiTrash2 size={14} />

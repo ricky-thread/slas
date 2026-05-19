@@ -4,7 +4,7 @@ import { SLA } from '../types'
 import { conditionsSummary } from '../data'
 
 const GripIcon = () => (
-  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" className="text-content-placeholder">
+  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" className="text-content-secondary">
     <circle cx="4" cy="3" r="1" fill="currentColor" />
     <circle cx="4" cy="7" r="1" fill="currentColor" />
     <circle cx="4" cy="11" r="1" fill="currentColor" />
@@ -84,7 +84,7 @@ export function SLAListRow({
           {...dragHandleListeners}
           {...dragHandleAttributes}
           onClick={e => e.stopPropagation()}
-          className="shrink-0 mt-0.5 p-1 rounded text-content-placeholder hover:text-content-tertiary hover:bg-bg-secondary cursor-grab active:cursor-grabbing transition-colors touch-none"
+          className="shrink-0 mt-0.5 p-1 rounded text-content-secondary hover:text-content-primary hover:bg-bg-secondary cursor-grab active:cursor-grabbing transition-colors touch-none"
           aria-label="Drag to reorder"
         >
           <GripIcon />
@@ -105,7 +105,7 @@ export function SLAListRow({
           <button
             type="button"
             onClick={e => { e.stopPropagation(); setMenuOpen(v => !v) }}
-            className={`p-1.5 rounded-md text-content-tertiary hover:text-content-primary transition-opacity ${
+            className={`p-1.5 rounded-md text-content-secondary hover:text-content-primary transition-opacity ${
               menuOpen ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
             }`}
             aria-label="SLA options"

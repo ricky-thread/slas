@@ -58,7 +58,7 @@ function newBlankSLA(): SLA {
 }
 
 const GripIcon = () => (
-  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" className="text-content-placeholder">
+  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" className="text-content-secondary">
     <circle cx="4" cy="3" r="1" fill="currentColor" />
     <circle cx="4" cy="7" r="1" fill="currentColor" />
     <circle cx="4" cy="11" r="1" fill="currentColor" />
@@ -127,7 +127,7 @@ function TimerStatusRow({
             <button
               type="button"
               onClick={() => onChange(statuses.filter(s => s !== status))}
-              className="text-content-tertiary hover:text-content-primary"
+              className="text-content-secondary hover:text-content-primary"
               aria-label={`Remove ${status}`}
             >
               ×
@@ -307,7 +307,7 @@ export function SLAEditorPage({ initialSLA, onSave, onCancel }: Props) {
                   {activeRows.map(({ key, label, dotColor, textColor }) => (
                     <tr key={key} className="bg-surface-card group/row">
                       <td className="pl-3 py-2.5">
-                        <span className="p-1 text-content-placeholder inline-flex">
+                        <span className="p-1 text-content-secondary inline-flex">
                           <GripIcon />
                         </span>
                       </td>
@@ -344,7 +344,7 @@ export function SLAEditorPage({ initialSLA, onSave, onCancel }: Props) {
                         <button
                           type="button"
                           onClick={() => removePriority(key)}
-                          className="p-1.5 rounded-md text-transparent group-hover/row:text-content-tertiary hover:!text-red-500 hover:bg-red-50 transition-colors"
+                          className="p-1.5 rounded-md text-transparent group-hover/row:text-content-secondary hover:!text-red-500 hover:bg-red-50 transition-colors"
                           aria-label={`Remove ${label}`}
                         >
                           <FiTrash2 size={14} />

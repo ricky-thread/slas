@@ -411,7 +411,7 @@ export function SLAPage({
     const body = (
       <>
         {showPriorityMarkers && (
-          <p className="px-4 pt-3 pb-1 text-xs text-content-placeholder flex items-center gap-1">
+          <p className="px-4 pt-3 pb-1 text-[12px] text-content-tertiary flex items-center gap-1">
             <FiArrowUp size={12} /> Highest priority
           </p>
         )}
@@ -431,7 +431,7 @@ export function SLAPage({
           ))}
         </SortableContext>
         {showPriorityMarkers && (
-          <p className={`px-4 pb-3 pt-1 text-xs text-content-placeholder flex items-center gap-1 ${items.length === 0 ? 'pt-6' : ''}`}>
+          <p className={`px-4 pb-3 pt-1 text-[12px] text-content-tertiary flex items-center gap-1 ${items.length === 0 ? 'pt-6' : ''}`}>
             <FiArrowDown size={12} /> Lowest priority
           </p>
         )}
@@ -461,7 +461,7 @@ export function SLAPage({
   const listContent = (
     <div className="w-full max-w-[720px]">
       <div className="mb-8">
-        <div className="flex items-center justify-between mb-1">
+        <div className="flex items-center justify-between mb-4">
           <div>
             <h2 className="text-[16px] font-semibold text-content-primary">Active</h2>
             <p className="text-xs text-content-secondary mt-0.5 max-w-[720px]">SLAs that are actively running on tickets</p>
@@ -478,10 +478,18 @@ export function SLAPage({
             )
           ) : (
             <div className="flex items-center gap-3">
-              <button type="button" onClick={handleCancelOrder} className="text-[14px] font-medium text-content-secondary hover:text-content-primary transition-colors">
+              <button
+                type="button"
+                onClick={handleCancelOrder}
+                className="inline-flex items-center h-7 text-[14px] font-medium text-content-secondary hover:text-content-primary transition-colors"
+              >
                 Cancel
               </button>
-              <button type="button" onClick={handleSaveOrder} className="px-4 py-1.5 text-[14px] font-semibold text-white bg-brand-500 rounded-lg hover:bg-brand-600 transition-colors">
+              <button
+                type="button"
+                onClick={handleSaveOrder}
+                className="inline-flex items-center h-7 px-3 text-[14px] font-semibold text-white bg-brand-500 rounded-lg hover:bg-brand-600 transition-colors"
+              >
                 Save
               </button>
             </div>
@@ -496,7 +504,7 @@ export function SLAPage({
             onDragEnd={handleDragEnd}
           >
             {renderList('active', activeSlas, true)}
-            <div className="mt-8 mb-1">
+            <div className="mt-8 mb-4">
               <h2 className="text-[16px] font-semibold text-content-primary">Pending</h2>
               <p className="text-xs text-content-secondary mt-0.5 max-w-[720px]">SLAs that you&apos;ve configured that are not running on tickets</p>
             </div>
@@ -512,7 +520,7 @@ export function SLAPage({
         ) : (
           <>
             {renderList('active', activeSlas, true)}
-            <div className="mt-8 mb-1">
+            <div className="mt-8 mb-4">
               <h2 className="text-[16px] font-semibold text-content-primary">Pending</h2>
               <p className="text-xs text-content-secondary mt-0.5 max-w-[720px]">SLAs that you&apos;ve configured that are not running on tickets</p>
             </div>
@@ -526,7 +534,7 @@ export function SLAPage({
 
   return (
     <div className="mx-auto w-full max-w-[720px] px-6 py-8">
-      <div className="text-center mb-10">
+      <div className="text-center">
         <DocIcon />
         <h2 className="text-[20px] font-semibold text-content-primary mb-2">Service Level Agreements</h2>
         <p className="text-sm text-content-secondary max-w-[720px] mx-auto mb-5">
@@ -536,11 +544,13 @@ export function SLAPage({
           type="button"
           onClick={() => onNavigateToEdit(null)}
           disabled={isEditMode}
-          className="inline-flex items-center gap-1.5 px-4 py-2 text-[14px] font-semibold text-white bg-brand-500 rounded-lg hover:bg-brand-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="inline-flex items-center justify-center gap-1.5 h-8 px-4 text-[14px] font-semibold text-white bg-brand-500 rounded-lg hover:bg-brand-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <FiPlus size={14} /> Create SLA
         </button>
       </div>
+
+      <div className="mt-5 mb-5 border-b border-border-card" aria-hidden="true" />
 
       {listContent}
 
