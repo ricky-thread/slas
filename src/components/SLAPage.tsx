@@ -21,10 +21,63 @@ import { CSS } from '@dnd-kit/utilities'
 import { SLA } from '../types'
 import { conditionsSummary } from '../data'
 import { SLAListRow } from './SLAListRow'
-import { FiPlus, FiX, FiArrowUp, FiArrowDown } from 'react-icons/fi'
+import { FiPlus, FiX, FiArrowUp, FiArrowDown, FiCheck } from 'react-icons/fi'
 
 type ContainerId = 'active' | 'pending'
 type DraftLists = Record<ContainerId, string[]>
+
+type UpdateToastState =
+  | { phase: 'info'; secondsLeft: number }
+  | { phase: 'success' }
+
+function activeListChanged(before: string[], after: string[]): boolean {
+  if (before.length !== after.length) return true
+  return before.some((id, i) => id !== after[i])
+}
+
+function SLAUpdateToast({
+  toast,
+  onDismiss,
+}: {
+  toast: UpdateToastState
+  onDismiss: () => void
+}) {
+  const isInfo = toast.phase === 'info'
+
+  return (
+    <div
+      role="status"
+      className={`fixed top-5 left-1/2 z-50 flex -translate-x-1/2 items-center gap-2.5 rounded-full border py-2 pl-3 pr-2 shadow-[0px_4px_16px_rgba(0,0,0,0.1)] ${
+        isInfo
+          ? 'border-[#B3D4FF] bg-[#EBF5FF] text-[#1C4D8E]'
+          : 'border-[#145A32]/20 bg-[#E4FCEE] text-[#145A32]'
+      }`}
+    >
+      {isInfo ? (
+        <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#2F80ED] text-[11px] font-bold leading-none text-white">
+          i
+        </span>
+      ) : (
+        <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#145A32] text-white">
+          <FiCheck size={12} strokeWidth={3} />
+        </span>
+      )}
+      <span className="text-[14px] font-medium whitespace-nowrap">
+        {isInfo
+          ? `Thread SLAs update in progress (${toast.secondsLeft}s)...`
+          : 'Successfully updated SLAs on threads.'}
+      </span>
+      <button
+        type="button"
+        onClick={onDismiss}
+        className="shrink-0 rounded-md p-1 text-content-secondary hover:text-content-primary transition-colors"
+        aria-label="Dismiss"
+      >
+        <FiX size={14} />
+      </button>
+    </div>
+  )
+}
 
 function SortableListRow({
   sla,
@@ -217,6 +270,7 @@ export function SLAPage({
 
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null)
   const [showDiscardDialog, setShowDiscardDialog] = useState(false)
+  const [updateToast, setUpdateToast] = useState<UpdateToastState | null>(null)
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }))
 
   const enterEditMode = useCallback((draft: DraftLists, snapshot?: DraftLists) => {
@@ -273,10 +327,30 @@ export function SLAPage({
     }
   }, [pendingNavigation, isEditMode])
 
+  useEffect(() => {
+    if (!updateToast || updateToast.phase !== 'info') return
+    if (updateToast.secondsLeft <= 0) {
+      setUpdateToast({ phase: 'success' })
+      return
+    }
+    const timer = window.setTimeout(() => {
+      setUpdateToast(prev =>
+        prev?.phase === 'info' && prev.secondsLeft > 0
+          ? { phase: 'info', secondsLeft: prev.secondsLeft - 1 }
+          : prev,
+      )
+    }, 1000)
+    return () => window.clearTimeout(timer)
+  }, [updateToast])
+
   const handleSaveOrder = () => {
+    const activeChanged = activeListChanged(savedSnapshot.active, draftLists.active)
     onCommitLists(draftLists)
     setNewlyCreatedId(null)
     exitEditMode()
+    if (activeChanged) {
+      setUpdateToast({ phase: 'info', secondsLeft: 8 })
+    }
   }
 
   const handleCancelOrder = () => {
@@ -553,7 +627,11 @@ export function SLAPage({
   )
 
   return (
-    <div className="mx-auto w-full max-w-[720px] px-6 py-8">
+    <>
+      {updateToast && (
+        <SLAUpdateToast toast={updateToast} onDismiss={() => setUpdateToast(null)} />
+      )}
+      <div className="mx-auto w-full max-w-[720px] px-6 py-8">
       <div className="text-center">
         <DocIcon />
         <h2 className="text-[20px] font-semibold text-content-primary mb-2">Service Level Agreements</h2>
@@ -595,5 +673,6 @@ export function SLAPage({
       )}
 
     </div>
+    </>
   )
 }
