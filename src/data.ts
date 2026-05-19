@@ -39,9 +39,9 @@ const STANDARD_TARGETS: Targets = {
 }
 
 const DEFAULT_TIMER_CONTROLS = {
-  stopResponse: ['Completed', 'Closed', 'Resolved'],
-  pause: ['Waiting on client', 'Waiting on vendor', 'On Hold'],
-  stopResolution: ['Completed', 'Closed', 'Resolved'],
+  stopResponse: ['Complete', 'Complete QA'],
+  pause: ['On hold', 'Waiting on client', 'Waiting on us', 'Waiting on vendor'],
+  stopResolution: ['Complete', 'Complete QA'],
 }
 
 export const INITIAL_SLAS: SLA[] = [
@@ -114,10 +114,23 @@ export const SOURCE_OPTIONS = [
   { value: 'portal',  label: 'Portal' },
 ]
 
+export const TICKET_STATUSES = [
+  'New',
+  'Triage',
+  'In progress',
+  'Needs scheduling',
+  'On hold',
+  'Waiting on client',
+  'Waiting on us',
+  'Waiting on vendor',
+  'Complete QA',
+  'Complete',
+]
+
 export const TIMER_STATUS_PRESETS = {
-  stopResponse: ['Completed', 'Closed', 'Resolved'],
-  pause: ['Waiting on client', 'Waiting on vendor', 'On Hold'],
-  stopResolution: ['Completed', 'Closed', 'Resolved'],
+  stopResponse: ['Complete', 'Complete QA'],
+  pause: ['On hold', 'Waiting on client', 'Waiting on us', 'Waiting on vendor'],
+  stopResolution: ['Complete', 'Complete QA'],
 }
 
 /** Returns true if a ticket could plausibly match both SLAs. */

@@ -31,6 +31,7 @@ function SortableListRow({
   containerId,
   isLast,
   isEditMode,
+  showNotSavedBadge,
   onEdit,
   onAddToActive,
   onMoveToPending,
@@ -40,6 +41,7 @@ function SortableListRow({
   containerId: ContainerId
   isLast: boolean
   isEditMode: boolean
+  showNotSavedBadge?: boolean
   onEdit: () => void
   onAddToActive: () => void
   onMoveToPending: () => void
@@ -64,6 +66,7 @@ function SortableListRow({
         section={containerId}
         isLast={isLast}
         showDragHandle={isEditMode}
+        showNotSavedBadge={showNotSavedBadge}
         showContextMenu={!isEditMode}
         dragHandleListeners={listeners as unknown as Record<string, unknown>}
         dragHandleAttributes={attributes as unknown as Record<string, unknown>}
@@ -168,6 +171,17 @@ function findContainer(id: string, lists: DraftLists): ContainerId | null {
   return null
 }
 
+function getUnsavedSlaIds(draft: DraftLists, snapshot: DraftLists): Set<string> {
+  const unsaved = new Set<string>()
+  for (const id of draft.active) {
+    if (!snapshot.active.includes(id)) unsaved.add(id)
+  }
+  for (const id of draft.pending) {
+    if (!snapshot.pending.includes(id)) unsaved.add(id)
+  }
+  return unsaved
+}
+
 interface Props {
   slas: SLA[]
   onDeleteSLA: (slaId: string) => void
@@ -205,13 +219,12 @@ export function SLAPage({
   const [showDiscardDialog, setShowDiscardDialog] = useState(false)
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }))
 
-  const enterEditMode = useCallback((lists?: DraftLists) => {
-    const next = lists ?? listsFromSLAs(slas)
-    setDraftLists(next)
-    setSavedSnapshot(next)
+  const enterEditMode = useCallback((draft: DraftLists, snapshot?: DraftLists) => {
+    setDraftLists(draft)
+    setSavedSnapshot(snapshot ?? draft)
     setIsEditMode(true)
     onListEditModeChange(true)
-  }, [slas, onListEditModeChange])
+  }, [onListEditModeChange])
 
   const exitEditMode = useCallback(() => {
     setIsEditMode(false)
@@ -279,19 +292,21 @@ export function SLAPage({
   }
 
   const handleAddToActiveAndEdit = (slaId: string) => {
-    const lists = listsFromSLAs(slas)
-    if (!lists.active.includes(slaId)) {
-      lists.active = [...lists.active, slaId]
-      lists.pending = lists.pending.filter(id => id !== slaId)
+    const snapshot = listsFromSLAs(slas)
+    const draft: DraftLists = {
+      active: snapshot.active.includes(slaId) ? snapshot.active : [...snapshot.active, slaId],
+      pending: snapshot.pending.filter(id => id !== slaId),
     }
-    enterEditMode(lists)
+    enterEditMode(draft, snapshot)
   }
 
   const handleMoveToPendingAndEdit = (slaId: string) => {
-    const lists = listsFromSLAs(slas)
-    lists.active = lists.active.filter(id => id !== slaId)
-    lists.pending = [slaId, ...lists.pending.filter(id => id !== slaId)]
-    enterEditMode(lists)
+    const snapshot = listsFromSLAs(slas)
+    const draft: DraftLists = {
+      active: snapshot.active.filter(id => id !== slaId),
+      pending: [slaId, ...snapshot.pending.filter(id => id !== slaId)],
+    }
+    enterEditMode(draft, snapshot)
   }
 
   const handleDragStart = (event: DragStartEvent) => {
@@ -362,6 +377,10 @@ export function SLAPage({
   }
 
   const displayLists = isEditMode ? draftLists : listsFromSLAs(slas)
+  const unsavedSlaIds = useMemo(
+    () => (isEditMode ? getUnsavedSlaIds(draftLists, savedSnapshot) : new Set<string>()),
+    [isEditMode, draftLists, savedSnapshot],
+  )
   const activeSlas = displayLists.active.map(id => slaMap.get(id)).filter(Boolean) as SLA[]
   const pendingSlas = displayLists.pending.map(id => slaMap.get(id)).filter(Boolean) as SLA[]
   const activeEmpty = activeSlas.length === 0
@@ -423,6 +442,7 @@ export function SLAPage({
               containerId={containerId}
               isLast={i === items.length - 1}
               isEditMode={isEditMode}
+              showNotSavedBadge={unsavedSlaIds.has(sla.id)}
               onEdit={() => onNavigateToEdit(sla.id)}
               onAddToActive={() => handleAddToActiveAndEdit(sla.id)}
               onMoveToPending={() => handleMoveToPendingAndEdit(sla.id)}
@@ -470,18 +490,18 @@ export function SLAPage({
             !activeEmpty && (
               <button
                 type="button"
-                onClick={() => enterEditMode()}
-                className="text-[14px] font-semibold text-brand-600 hover:text-brand-700 transition-colors"
+                onClick={() => enterEditMode(listsFromSLAs(slas))}
+                className="inline-flex items-center h-7 px-2 text-[14px] font-semibold text-brand-600 rounded-lg hover:bg-[#E6FAF6] hover:text-[#438E78] transition-colors"
               >
                 Edit active
               </button>
             )
           ) : (
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
               <button
                 type="button"
                 onClick={handleCancelOrder}
-                className="inline-flex items-center h-7 text-[14px] font-medium text-content-secondary hover:text-content-primary transition-colors"
+                className="inline-flex items-center h-7 px-3 text-[14px] font-medium text-content-secondary rounded-lg hover:bg-[#EDEDEB] hover:text-[#5C5C66] transition-colors"
               >
                 Cancel
               </button>

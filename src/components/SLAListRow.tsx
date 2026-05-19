@@ -29,6 +29,7 @@ interface Props {
   onDelete?: () => void
   onRowClick?: () => void
   isLast?: boolean
+  showNotSavedBadge?: boolean
 }
 
 export function SLAListRow({
@@ -44,6 +45,7 @@ export function SLAListRow({
   onDelete,
   onRowClick,
   isLast = false,
+  showNotSavedBadge = false,
 }: Props) {
   const [menuOpen, setMenuOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
@@ -92,7 +94,14 @@ export function SLAListRow({
       )}
 
       <div className="flex-1 min-w-0">
-        <h3 className="text-[14px] font-semibold text-content-primary leading-[1.44]">{sla.name}</h3>
+        <div className="flex items-center gap-2 min-w-0">
+          <h3 className="text-[14px] font-semibold text-content-primary leading-[1.44] truncate">{sla.name}</h3>
+          {showNotSavedBadge && (
+            <span className="shrink-0 inline-flex items-center h-5 px-1.5 text-[12px] font-medium leading-none text-[#2B558E] bg-[#EBF3FC] rounded">
+              Not saved
+            </span>
+          )}
+        </div>
         <p className="text-xs text-content-secondary mt-0.5">
           {'{{'}
           {summary}
