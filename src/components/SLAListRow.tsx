@@ -3,8 +3,14 @@ import { FiEdit2, FiPlus, FiTrash2, FiMoreHorizontal, FiX } from 'react-icons/fi
 import { SLA } from '../types'
 import { conditionsSummary } from '../data'
 
-const GripIcon = () => (
-  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" className="text-content-secondary">
+const GripIcon = ({ disabled = false }: { disabled?: boolean }) => (
+  <svg
+    width="14"
+    height="14"
+    viewBox="0 0 14 14"
+    fill="none"
+    className={disabled ? 'text-[#B3B2B8]' : 'text-content-secondary'}
+  >
     <circle cx="4" cy="3" r="1" fill="currentColor" />
     <circle cx="4" cy="7" r="1" fill="currentColor" />
     <circle cx="4" cy="11" r="1" fill="currentColor" />
@@ -30,6 +36,8 @@ interface Props {
   onRowClick?: () => void
   isLast?: boolean
   showNotSavedBadge?: boolean
+  muteNotSavedBadge?: boolean
+  isDisabled?: boolean
 }
 
 export function SLAListRow({
@@ -46,6 +54,8 @@ export function SLAListRow({
   onRowClick,
   isLast = false,
   showNotSavedBadge = false,
+  muteNotSavedBadge = false,
+  isDisabled = false,
 }: Props) {
   const [menuOpen, setMenuOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
@@ -69,7 +79,7 @@ export function SLAListRow({
     <div
       className={`group flex items-center gap-3 px-4 py-4 transition-colors ${
         !isLast ? 'border-b border-border-card' : ''
-      } ${isInteractive ? 'cursor-pointer hover:bg-[rgba(229,228,224,0.55)]' : ''}`}
+      } ${isInteractive && !isDisabled ? 'cursor-pointer hover:bg-[rgba(229,228,224,0.55)]' : ''}`}
       onClick={isInteractive ? onRowClick : undefined}
       onKeyDown={isInteractive ? (e) => {
         if (e.key === 'Enter' || e.key === ' ') {
@@ -86,23 +96,37 @@ export function SLAListRow({
           {...dragHandleListeners}
           {...dragHandleAttributes}
           onClick={e => e.stopPropagation()}
-          className="shrink-0 mt-0.5 p-1 rounded text-content-secondary hover:text-content-primary hover:bg-bg-secondary cursor-grab active:cursor-grabbing transition-colors touch-none"
+          className={`shrink-0 mt-0.5 p-1 rounded touch-none ${
+            isDisabled
+              ? 'text-[#B3B2B8] cursor-default'
+              : 'text-content-secondary hover:text-content-primary hover:bg-bg-secondary cursor-grab active:cursor-grabbing transition-colors'
+          }`}
           aria-label="Drag to reorder"
         >
-          <GripIcon />
+          <GripIcon disabled={isDisabled} />
         </button>
       )}
 
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 min-w-0">
-          <h3 className="text-[14px] font-semibold text-content-primary leading-[1.44] truncate">{sla.name}</h3>
+          <h3
+            className={`text-[14px] font-semibold leading-[1.44] truncate ${
+              isDisabled ? 'text-[#B3B2B8]' : 'text-content-primary'
+            }`}
+          >
+            {sla.name}
+          </h3>
           {showNotSavedBadge && (
-            <span className="shrink-0 inline-flex items-center h-5 px-1.5 text-[12px] font-medium leading-none text-[#2B558E] bg-[#EBF3FC] rounded">
+            <span
+              className={`shrink-0 inline-flex items-center h-5 px-1.5 text-[12px] font-medium leading-none text-[#2B558E] bg-[#EBF3FC] rounded ${
+                muteNotSavedBadge ? 'opacity-50' : ''
+              }`}
+            >
               Not saved
             </span>
           )}
         </div>
-        <p className="text-xs text-content-secondary mt-0.5">
+        <p className={`text-xs mt-0.5 ${isDisabled ? 'text-[#B3B2B8]' : 'text-content-secondary'}`}>
           {'{{'}
           {summary}
           {'}}'}

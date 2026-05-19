@@ -26,6 +26,9 @@ import { FiPlus, FiX, FiArrowUp, FiArrowDown, FiCheck } from 'react-icons/fi'
 type ContainerId = 'active' | 'pending'
 type DraftLists = Record<ContainerId, string[]>
 
+const UI_DISABLED = '#B3B2B8'
+const SAVE_DISABLED_BG = '#99E4D6'
+
 type UpdateToastState =
   | { phase: 'info'; secondsLeft: number }
   | { phase: 'success' }
@@ -84,6 +87,8 @@ function SortableListRow({
   containerId,
   isLast,
   isEditMode,
+  isDisabled = false,
+  muteNotSavedBadge = false,
   showNotSavedBadge,
   onEdit,
   onAddToActive,
@@ -94,6 +99,8 @@ function SortableListRow({
   containerId: ContainerId
   isLast: boolean
   isEditMode: boolean
+  isDisabled?: boolean
+  muteNotSavedBadge?: boolean
   showNotSavedBadge?: boolean
   onEdit: () => void
   onAddToActive: () => void
@@ -103,6 +110,7 @@ function SortableListRow({
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: sla.id,
     data: { containerId },
+    disabled: isDisabled,
   })
 
   return (
@@ -118,6 +126,8 @@ function SortableListRow({
         sla={sla}
         section={containerId}
         isLast={isLast}
+        isDisabled={isDisabled}
+        muteNotSavedBadge={muteNotSavedBadge}
         showDragHandle={isEditMode}
         showNotSavedBadge={showNotSavedBadge}
         showContextMenu={!isEditMode}
@@ -331,6 +341,7 @@ export function SLAPage({
     if (!updateToast || updateToast.phase !== 'info') return
     if (updateToast.secondsLeft <= 0) {
       setUpdateToast({ phase: 'success' })
+      exitEditMode()
       return
     }
     const timer = window.setTimeout(() => {
@@ -341,15 +352,18 @@ export function SLAPage({
       )
     }, 1000)
     return () => window.clearTimeout(timer)
-  }, [updateToast])
+  }, [updateToast, exitEditMode])
+
+  const isActiveUpdating = updateToast?.phase === 'info'
 
   const handleSaveOrder = () => {
     const activeChanged = activeListChanged(savedSnapshot.active, draftLists.active)
     onCommitLists(draftLists)
     setNewlyCreatedId(null)
-    exitEditMode()
     if (activeChanged) {
       setUpdateToast({ phase: 'info', secondsLeft: 8 })
+    } else {
+      exitEditMode()
     }
   }
 
@@ -461,10 +475,18 @@ export function SLAPage({
 
   const slaToDelete = deleteConfirmId ? slaMap.get(deleteConfirmId) : null
 
-  const renderList = (containerId: ContainerId, items: SLA[], showPriorityMarkers: boolean) => {
-    const isOver = isEditMode && overContainer === containerId
+  const renderList = (
+    containerId: ContainerId,
+    items: SLA[],
+    showPriorityMarkers: boolean,
+    disabled = false,
+  ) => {
+    const isOver = isEditMode && !disabled && overContainer === containerId
 
     if (items.length === 0 && containerId === 'pending') {
+      const emptyPendingClass = `px-4 py-8 text-center text-sm w-full ${
+        isActiveUpdating ? 'text-[#B3B2B8]' : 'text-content-secondary'
+      }`
       return (
         <DroppableSection
           id="pending"
@@ -474,14 +496,10 @@ export function SLAPage({
         >
           {isEditMode ? (
             <SortableContext items={[]} strategy={verticalListSortingStrategy}>
-              <p className="px-4 py-8 text-center text-sm text-content-secondary w-full">
-                No pending SLAs
-              </p>
+              <p className={emptyPendingClass}>No pending SLAs</p>
             </SortableContext>
           ) : (
-            <p className="px-4 py-8 text-center text-sm text-content-secondary w-full">
-              No pending SLAs
-            </p>
+            <p className={emptyPendingClass}>No pending SLAs</p>
           )}
         </DroppableSection>
       )
@@ -504,8 +522,12 @@ export function SLAPage({
     const body = (
       <>
         {showPriorityMarkers && (
-          <p className="px-4 pt-3 pb-1 text-[12px] text-content-tertiary flex items-center gap-1">
-            <FiArrowUp size={12} /> Highest priority
+          <p
+            className={`px-4 pt-3 pb-1 text-[12px] flex items-center gap-1 ${
+              disabled ? 'text-[#B3B2B8]' : 'text-content-tertiary'
+            }`}
+          >
+            <FiArrowUp size={12} className={disabled ? 'text-[#B3B2B8]' : undefined} /> Highest priority
           </p>
         )}
         <SortableContext items={items.map(s => s.id)} strategy={verticalListSortingStrategy}>
@@ -516,6 +538,8 @@ export function SLAPage({
               containerId={containerId}
               isLast={i === items.length - 1}
               isEditMode={isEditMode}
+              isDisabled={disabled}
+              muteNotSavedBadge={isActiveUpdating}
               showNotSavedBadge={unsavedSlaIds.has(sla.id)}
               onEdit={() => onNavigateToEdit(sla.id)}
               onAddToActive={() => handleAddToActiveAndEdit(sla.id)}
@@ -525,8 +549,12 @@ export function SLAPage({
           ))}
         </SortableContext>
         {showPriorityMarkers && (
-          <p className={`px-4 pb-3 pt-1 text-[12px] text-content-tertiary flex items-center gap-1 ${items.length === 0 ? 'pt-6' : ''}`}>
-            <FiArrowDown size={12} /> Lowest priority
+          <p
+            className={`px-4 pb-3 pt-1 text-[12px] flex items-center gap-1 ${items.length === 0 ? 'pt-6' : ''} ${
+              disabled ? 'text-[#B3B2B8]' : 'text-content-tertiary'
+            }`}
+          >
+            <FiArrowDown size={12} className={disabled ? 'text-[#B3B2B8]' : undefined} /> Lowest priority
           </p>
         )}
       </>
@@ -555,10 +583,20 @@ export function SLAPage({
   const listContent = (
     <div className="w-full max-w-[720px]">
       <div className="mb-8">
-        <div className="flex items-center justify-between mb-4">
+        <div className={`flex items-center justify-between mb-4 ${isActiveUpdating ? 'pointer-events-none' : ''}`}>
           <div>
-            <h2 className="text-[16px] font-semibold text-content-primary">Active</h2>
-            <p className="text-xs text-content-secondary mt-0.5 max-w-[720px]">SLAs that are actively running on tickets</p>
+            <h2
+              className={`text-[16px] font-semibold ${isActiveUpdating ? 'text-[#B3B2B8]' : 'text-content-primary'}`}
+            >
+              Active
+            </h2>
+            <p
+              className={`text-xs mt-0.5 max-w-[720px] ${
+                isActiveUpdating ? 'text-[#B3B2B8]' : 'text-content-secondary'
+              }`}
+            >
+              SLAs that are actively running on tickets
+            </p>
           </div>
           {!isEditMode ? (
             !activeEmpty && (
@@ -575,14 +613,24 @@ export function SLAPage({
               <button
                 type="button"
                 onClick={handleCancelOrder}
-                className="inline-flex items-center h-7 px-3 text-[14px] font-medium text-content-secondary rounded-lg hover:bg-[#EDEDEB] hover:text-[#5C5C66] transition-colors"
+                disabled={isActiveUpdating}
+                className={`inline-flex items-center h-7 px-3 text-[14px] font-medium rounded-lg transition-colors ${
+                  isActiveUpdating
+                    ? 'text-[#B3B2B8] cursor-default'
+                    : 'text-content-secondary hover:bg-[#EDEDEB] hover:text-[#5C5C66]'
+                }`}
               >
                 Cancel
               </button>
               <button
                 type="button"
                 onClick={handleSaveOrder}
-                className="inline-flex items-center h-7 px-3 text-[14px] font-semibold text-white bg-brand-500 rounded-lg hover:bg-brand-600 transition-colors"
+                disabled={isActiveUpdating}
+                className={`inline-flex items-center h-7 px-3 text-[14px] font-semibold rounded-lg transition-colors ${
+                  isActiveUpdating
+                    ? 'bg-[#99E4D6] text-white cursor-default'
+                    : 'text-white bg-brand-500 hover:bg-brand-600'
+                }`}
               >
                 Save
               </button>
@@ -591,18 +639,34 @@ export function SLAPage({
         </div>
         {isEditMode ? (
           <DndContext
-            sensors={sensors}
+            sensors={isActiveUpdating ? [] : sensors}
             collisionDetection={closestCenter}
             onDragStart={handleDragStart}
             onDragOver={handleDragOver}
             onDragEnd={handleDragEnd}
           >
-            {renderList('active', activeSlas, true)}
-            <div className="mt-8 mb-4">
-              <h2 className="text-[16px] font-semibold text-content-primary">Pending</h2>
-              <p className="text-xs text-content-secondary mt-0.5 max-w-[720px]">SLAs that you&apos;ve configured that are not running on tickets</p>
+            <div className={isActiveUpdating ? 'pointer-events-none' : ''}>
+              {renderList('active', activeSlas, true, isActiveUpdating)}
             </div>
-            {renderList('pending', pendingSlas, false)}
+            <div className="mt-8 mb-4">
+              <h2
+                className={`text-[16px] font-semibold ${
+                  isActiveUpdating ? 'text-[#B3B2B8]' : 'text-content-primary'
+                }`}
+              >
+                Pending
+              </h2>
+              <p
+                className={`text-xs mt-0.5 max-w-[720px] ${
+                  isActiveUpdating ? 'text-[#B3B2B8]' : 'text-content-secondary'
+                }`}
+              >
+                SLAs that you&apos;ve configured that are not running on tickets
+              </p>
+            </div>
+            <div className={isActiveUpdating ? 'pointer-events-none' : ''}>
+              {renderList('pending', pendingSlas, false, isActiveUpdating)}
+            </div>
             <DragOverlay dropAnimation={null}>
               {activeDragId && slaMap.get(activeDragId) ? (
                 <div className="opacity-90 shadow-lg rounded-lg bg-white">
